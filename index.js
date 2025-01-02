@@ -37,10 +37,11 @@ const userSessionSchema = new mongoose.Schema({
 });
 
 const Ticket = mongoose.model("Ticket", ticketSchema);
+
 const UserSession = mongoose.model("UserSession", userSessionSchema);
 
 // Bot tokenini o'zingizning botingiz tokeniga almashtiring
-const bot = new Bot("7881269145:AAGBrNof3J2cw3GDVjItyfqrwoWw_LAR36U");
+const bot = new Bot(process.env.BOT_TOKEN);
 
 async function connectToMongo() {
   try {
