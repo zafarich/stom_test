@@ -3,6 +3,7 @@ const XLSX = require("xlsx");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const https = require("https");
+require("dotenv").config();
 
 // MongoDB ulanish URL
 const mongoUrl = "mongodb://localhost:27017/quiz";
