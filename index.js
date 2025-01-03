@@ -124,7 +124,7 @@ async function startNewTest(userId, isRandom = true) {
   try {
     let questions;
     if (isRandom) {
-      questions = await getRandomQuestions(20);
+      questions = await getRandomQuestions(50);
     } else {
       const ticket = await Ticket.findOne({ticketNumber: 1});
       questions = ticket.questions;
