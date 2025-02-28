@@ -159,10 +159,8 @@ async function sendQuestion(ctx, session) {
     options: currentQuestion.options,
   });
 
-  // Savolni va variantlarni tayyorlash
   let questionText = "";
 
-  // Agar random test bo'lmasa (ya'ni bilet bo'lsa), bilet raqamini ko'rsatamiz
   if (!session.isRandomTest) {
     questionText += `${session.ticketNumber}-билет\n\n`;
   }
@@ -173,8 +171,14 @@ async function sendQuestion(ctx, session) {
   questionText += currentQuestion.question + "\n\n";
   questionText += "Вариантлар:\n";
   const variants_keys = ["А", "Б", "В", "Г"];
+
+  // Faqat bilet rejimida to'g'ri javob oldiga + belgisini qo'shamiz
   currentQuestion.options.forEach((option, index) => {
-    questionText += `${variants_keys[index]}) ${option}\n`;
+    const isCorrectAnswer =
+      !session.isRandomTest && option === currentQuestion.correctAnswer;
+    questionText += `${variants_keys[index]}) ${
+      isCorrectAnswer ? "+ " : ""
+    }${option}\n`;
   });
 
   // Tugmalarni tayyorlash (faqat A, B, C, D)
