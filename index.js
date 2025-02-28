@@ -328,7 +328,7 @@ async function handleTicketSelection(ctx, ticketNumber) {
   });
 
   await ctx.reply(fullTicketText);
-  await sendQuestion(ctx, session);
+  // await sendQuestion(ctx, session);
 }
 
 async function handleAnswer(ctx) {
