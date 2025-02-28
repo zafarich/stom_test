@@ -292,24 +292,54 @@ async function handleTicketSelection(ctx, ticketNumber) {
 
   let fullTicketText = `${ticketNumber}-билет\n\n`;
 
-  // Barcha savollarni bir vaqtda ko'rsatish
-  session.currentTest.forEach((question, index) => {
-    fullTicketText += `Савол ${index + 1}:\n`;
+  // 10 ta savolni bir vaqtda ko'rsatish
+  for (let i = 0; i < 10; i++) {
+    const question = session.currentTest[i];
+    fullTicketText += `Савол ${i + 1}:\n`;
     fullTicketText += question.question + "\n\n";
     fullTicketText += "Вариантлар:\n";
 
     const variants_keys = ["А", "Б", "В", "Г"];
     question.options.forEach((option, optionIndex) => {
-      const isCorrectAnswer = option === question.correctAnswer;
-      fullTicketText += `${variants_keys[optionIndex]}) ${
-        isCorrectAnswer ? "+ " : ""
-      }${option}\n`;
+      fullTicketText += `${variants_keys[optionIndex]}) ${option}\n`;
     });
 
     fullTicketText += "\n------------------------\n\n";
+  }
+
+  const keyboard = new InlineKeyboard();
+  keyboard
+    .text("А", `answer_A_${ticketNumber}`)
+    .text("Б", `answer_B_${ticketNumber}`)
+    .text("В", `answer_C_${ticketNumber}`)
+    .text("Г", `answer_D_${ticketNumber}`);
+
+  await ctx.reply(fullTicketText, {reply_markup: keyboard});
+}
+
+async function handleAnswer(ctx) {
+  const session = await getSession(ctx);
+  const data = ctx.callbackQuery.data;
+  const [_, selectedAnswer, ticketNumber] = data.split("_");
+
+  let responseText = `${ticketNumber}-билет учун жавоблар:\n\n`;
+
+  // 10 ta savol uchun to'g'ri javoblarni ko'rsatish
+  session.currentTest.slice(0, 10).forEach((question, index) => {
+    const isCorrect =
+      question.correctAnswer ===
+      question.options[getAnswerIndex(selectedAnswer)];
+    responseText += `${index + 1}. ${isCorrect ? "✅" : "❌"} Тўғри жавоб: ${
+      question.correctAnswer
+    }\n`;
   });
 
-  await ctx.reply(fullTicketText);
+  await ctx.reply(responseText);
+}
+
+function getAnswerIndex(answer) {
+  const answerMap = {A: 0, B: 1, C: 2, D: 3};
+  return answerMap[answer];
 }
 
 bot.on("callback_query", async (ctx) => {
