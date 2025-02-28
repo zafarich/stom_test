@@ -342,36 +342,22 @@ function getAnswerIndex(answer) {
   return answerMap[answer];
 }
 
+async function getSession(ctx) {
+  return await UserSession.findOne({userId: ctx.from.id});
+}
+
+async function getTicketQuestions(ticketNumber) {
+  const ticket = await Ticket.findOne({ticketNumber});
+  return ticket ? ticket.questions : [];
+}
+
 bot.on("callback_query", async (ctx) => {
   try {
     const callbackData = ctx.callbackQuery.data;
 
     if (callbackData.startsWith("bilet_")) {
-      await UserSession.deleteMany({userId: ctx.from.id});
-
       const ticketNum = parseInt(callbackData.split("_")[1]);
-      const ticket = await Ticket.findOne({ticketNumber: ticketNum});
-      if (ticket) {
-        const session = new UserSession({
-          userId: ctx.from.id,
-          currentTest: ticket.questions.map((q) => ({
-            ...q.toObject(),
-            userAnswer: null,
-          })),
-          currentQuestionIndex: 0,
-          currentCorrectIndex: -1,
-          score: 0,
-          isRandomTest: false,
-          ticketNumber: ticketNum,
-        });
-        await session.save();
-        try {
-          await ctx.answerCallbackQuery();
-        } catch (error) {
-          console.log("Callback query жавобида хатолик:", error);
-        }
-        await sendQuestion(ctx, session);
-      }
+      await handleTicketSelection(ctx, ticketNum);
     } else if (callbackData.startsWith("opt_")) {
       const session = await UserSession.findOne({userId: ctx.from.id});
       if (
@@ -418,7 +404,7 @@ bot.on("callback_query", async (ctx) => {
       }
     }
   } catch (error) {
-    console.error("Callback query ишловида хатолик:", error);
+    console.error("Callback query ishlovida xatolik:", error);
     try {
       await ctx.answerCallbackQuery({
         text: "Хатолик юз берди. Қайтадан уриниб кўринг",
