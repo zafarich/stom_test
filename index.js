@@ -372,51 +372,52 @@ bot.on("callback_query", async (ctx) => {
     if (callbackData.startsWith("bilet_")) {
       const ticketNum = parseInt(callbackData.split("_")[1]);
       await handleTicketSelection(ctx, ticketNum);
-    } else if (callbackData.startsWith("opt_")) {
-      const session = await UserSession.findOne({userId: ctx.from.id});
-      if (
-        session &&
-        session.currentQuestionIndex < session.currentTest.length
-      ) {
-        const currentQuestion =
-          session.currentTest[session.currentQuestionIndex];
-        const selectedOptionIndex = parseInt(callbackData.split("_")[1]);
-
-        currentQuestion.userAnswer =
-          currentQuestion.options[selectedOptionIndex];
-        const isCorrect = selectedOptionIndex === session.currentCorrectIndex;
-
-        if (isCorrect) {
-          session.score += 1;
-          await ctx.reply("✅ Тўғри жавоб!");
-        } else {
-          await ctx.reply(
-            `❌ Нотўғри жавоб!\nТўғри жавоб: ${currentQuestion.correctAnswer}`
-          );
-        }
-
-        try {
-          await ctx.answerCallbackQuery();
-        } catch (error) {
-          console.log("Callback query жавобида хатолик:", error);
-        }
-
-        if (session.isRandomTest || isCorrect) {
-          session.currentQuestionIndex += 1;
-
-          if (session.currentQuestionIndex < session.currentTest.length) {
-            await session.save();
-            await sendQuestion(ctx, session);
-          } else {
-            const resultMessage = `Тест якунланди!\n\nНатижа: ${session.score}/${session.currentTest.length} та тўғри жавоб`;
-            await ctx.reply(resultMessage);
-            await session.deleteOne();
-          }
-        } else {
-          await session.save();
-        }
-      }
     }
+    // else if (callbackData.startsWith("opt_")) {
+    //   const session = await UserSession.findOne({userId: ctx.from.id});
+    //   if (
+    //     session &&
+    //     session.currentQuestionIndex < session.currentTest.length
+    //   ) {
+    //     const currentQuestion =
+    //       session.currentTest[session.currentQuestionIndex];
+    //     const selectedOptionIndex = parseInt(callbackData.split("_")[1]);
+
+    //     currentQuestion.userAnswer =
+    //       currentQuestion.options[selectedOptionIndex];
+    //     const isCorrect = selectedOptionIndex === session.currentCorrectIndex;
+
+    //     if (isCorrect) {
+    //       session.score += 1;
+    //       await ctx.reply("✅ Тўғри жавоб!");
+    //     } else {
+    //       await ctx.reply(
+    //         `❌ Нотўғри жавоб!\nТўғри жавоб: ${currentQuestion.correctAnswer}`
+    //       );
+    //     }
+
+    //     try {
+    //       await ctx.answerCallbackQuery();
+    //     } catch (error) {
+    //       console.log("Callback query жавобида хатолик:", error);
+    //     }
+
+    //     if (session.isRandomTest || isCorrect) {
+    //       session.currentQuestionIndex += 1;
+
+    //       if (session.currentQuestionIndex < session.currentTest.length) {
+    //         await session.save();
+    //         await sendQuestion(ctx, session);
+    //       } else {
+    //         const resultMessage = `Тест якунланди!\n\nНатижа: ${session.score}/${session.currentTest.length} та тўғри жавоб`;
+    //         await ctx.reply(resultMessage);
+    //         await session.deleteOne();
+    //       }
+    //     } else {
+    //       await session.save();
+    //     }
+    //   }
+    // }
   } catch (error) {
     console.error("Callback query ishlovida xatolik:", error);
     try {
