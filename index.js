@@ -285,36 +285,50 @@ bot.hears("📚 Билетлар", async (ctx) => {
 });
 
 async function handleTicketSelection(ctx, ticketNumber) {
-  const session = await getSession(ctx);
-  session.ticketNumber = ticketNumber;
-  session.isRandomTest = false;
-  session.currentTest = await getTicketQuestions(ticketNumber);
+  // Avval eski sessiyani o'chiramiz
+  await UserSession.deleteMany({userId: ctx.from.id});
 
+  // Yangi sessiya yaratamiz
+  const ticket = await Ticket.findOne({ticketNumber});
+  if (!ticket) {
+    await ctx.reply("Билет топилмади!");
+    return;
+  }
+
+  const session = new UserSession({
+    userId: ctx.from.id,
+    ticketNumber: ticketNumber,
+    isRandomTest: false,
+    currentTest: ticket.questions.map((q) => ({
+      ...q,
+      userAnswer: null,
+    })),
+    currentQuestionIndex: 0,
+    score: 0,
+  });
+  await session.save();
+
+  // Biletdagi barcha savollarni ko'rsatamiz
   let fullTicketText = `${ticketNumber}-билет\n\n`;
 
-  // 10 ta savolni bir vaqtda ko'rsatish
-  for (let i = 0; i < 10; i++) {
-    const question = session.currentTest[i];
+  ticket.questions.forEach((question, i) => {
     fullTicketText += `Савол ${i + 1}:\n`;
     fullTicketText += question.question + "\n\n";
     fullTicketText += "Вариантлар:\n";
 
     const variants_keys = ["А", "Б", "В", "Г"];
     question.options.forEach((option, optionIndex) => {
-      fullTicketText += `${variants_keys[optionIndex]}) ${option}\n`;
+      const isCorrectAnswer = option === question.correctAnswer;
+      fullTicketText += `${isCorrectAnswer ? "+ " : ""}${
+        variants_keys[optionIndex]
+      }) ${option}\n`;
     });
 
     fullTicketText += "\n------------------------\n\n";
-  }
+  });
 
-  const keyboard = new InlineKeyboard();
-  keyboard
-    .text("А", `answer_A_${ticketNumber}`)
-    .text("Б", `answer_B_${ticketNumber}`)
-    .text("В", `answer_C_${ticketNumber}`)
-    .text("Г", `answer_D_${ticketNumber}`);
-
-  await ctx.reply(fullTicketText, {reply_markup: keyboard});
+  await ctx.reply(fullTicketText);
+  await sendQuestion(ctx, session);
 }
 
 async function handleAnswer(ctx) {
