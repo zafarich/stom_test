@@ -284,6 +284,34 @@ bot.hears("📚 Билетлар", async (ctx) => {
   await ctx.reply("Билетни танланг:", {reply_markup: keyboard});
 });
 
+async function handleTicketSelection(ctx, ticketNumber) {
+  const session = await getSession(ctx);
+  session.ticketNumber = ticketNumber;
+  session.isRandomTest = false;
+  session.currentTest = await getTicketQuestions(ticketNumber);
+
+  let fullTicketText = `${ticketNumber}-билет\n\n`;
+
+  // Barcha savollarni bir vaqtda ko'rsatish
+  session.currentTest.forEach((question, index) => {
+    fullTicketText += `Савол ${index + 1}:\n`;
+    fullTicketText += question.question + "\n\n";
+    fullTicketText += "Вариантлар:\n";
+
+    const variants_keys = ["А", "Б", "В", "Г"];
+    question.options.forEach((option, optionIndex) => {
+      const isCorrectAnswer = option === question.correctAnswer;
+      fullTicketText += `${variants_keys[optionIndex]}) ${
+        isCorrectAnswer ? "+ " : ""
+      }${option}\n`;
+    });
+
+    fullTicketText += "\n------------------------\n\n";
+  });
+
+  await ctx.reply(fullTicketText);
+}
+
 bot.on("callback_query", async (ctx) => {
   try {
     const callbackData = ctx.callbackQuery.data;
