@@ -176,9 +176,9 @@ async function sendQuestion(ctx, session) {
   currentQuestion.options.forEach((option, index) => {
     const isCorrectAnswer =
       !session.isRandomTest && option === currentQuestion.correctAnswer;
-    questionText += `${variants_keys[index]}) ${
-      isCorrectAnswer ? "+ " : ""
-    }${option}\n`;
+    questionText += ` ${isCorrectAnswer ? "+ " : ""}${
+      variants_keys[index]
+    }) ${option}\n`;
   });
 
   // Tugmalarni tayyorlash (faqat A, B, C, D)
