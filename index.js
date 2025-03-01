@@ -169,7 +169,6 @@ async function sendQuestion(ctx, session) {
   currentQuestion.options.forEach((option, index) => {
     questionText += `${variants_keys[index]}) ${option}\n`;
   });
-
   ["А", "Б", "В", "Г"].forEach((letter, index) => {
     keyboard.text(letter, `opt_${index}`);
     if (index % 2 === 1) keyboard.row();
