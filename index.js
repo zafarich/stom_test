@@ -198,6 +198,7 @@ bot.command("start", async (ctx) => {
     .text("🎲 Имтихон олиш")
     .text("📚 Билетлар")
     .row()
+    .text("📝 Билетлар жавоби билан")
     .resized();
 
   await ctx.reply(
@@ -280,11 +281,49 @@ bot.hears("📚 Билетлар", async (ctx) => {
   await ctx.reply("Билетни танланг:", {reply_markup: keyboard});
 });
 
+bot.hears("📝 Билетлар жавоби билан", async (ctx) => {
+  const tickets = await Ticket.distinct("ticketNumber");
+  const keyboard = new InlineKeyboard();
+
+  tickets.forEach((ticketNum, index) => {
+    keyboard.text(`${ticketNum}-билет`, `answers_${ticketNum}`);
+    if (index % 3 === 2) keyboard.row();
+  });
+  if (tickets.length % 3 !== 0) keyboard.row();
+
+  await ctx.reply("Билетни танланг:", {reply_markup: keyboard});
+});
+
 bot.on("callback_query", async (ctx) => {
   try {
     const callbackData = ctx.callbackQuery.data;
 
-    if (callbackData.startsWith("bilet_")) {
+    if (callbackData.startsWith("answers_")) {
+      const ticketNum = parseInt(callbackData.split("_")[1]);
+      const ticket = await Ticket.findOne({ticketNumber: ticketNum});
+
+      if (ticket) {
+        let messageText = `${ticketNum}-БИЛЕТ САВОЛЛАРИ ВА ЖАВОБЛАРИ\n\n`;
+
+        ticket.questions.forEach((q, index) => {
+          messageText += `${index + 1}. ${q.question}\n\n`;
+          messageText += "Вариантлар:\n";
+          q.options.forEach((option) => {
+            messageText += `${
+              option === q.correctAnswer ? "✅ " : "○ "
+            }${option}\n`;
+          });
+          messageText += "\n";
+        });
+
+        try {
+          await ctx.answerCallbackQuery();
+          await ctx.reply(messageText);
+        } catch (error) {
+          console.log("Жавоб юборишда хатолик:", error);
+        }
+      }
+    } else if (callbackData.startsWith("bilet_")) {
       await UserSession.deleteMany({userId: ctx.from.id});
 
       const ticketNum = parseInt(callbackData.split("_")[1]);
