@@ -152,13 +152,6 @@ async function sendQuestion(ctx, session) {
   const currentQuestion = session.currentTest[session.currentQuestionIndex];
   const keyboard = new InlineKeyboard();
 
-  // Debug uchun log
-  console.log("Current question:", {
-    question: currentQuestion.question,
-    correctAnswer: currentQuestion.correctAnswer,
-    options: currentQuestion.options,
-  });
-
   let questionText = "";
 
   if (!session.isRandomTest) {
@@ -172,22 +165,16 @@ async function sendQuestion(ctx, session) {
   questionText += "Вариантлар:\n";
   const variants_keys = ["А", "Б", "В", "Г"];
 
-  // Faqat bilet rejimida to'g'ri javob oldiga + belgisini qo'shamiz
+  // To'g'ri javob belgisini ko'rsatmaslik
   currentQuestion.options.forEach((option, index) => {
-    const isCorrectAnswer =
-      !session.isRandomTest && option === currentQuestion.correctAnswer;
-    questionText += ` ${isCorrectAnswer ? "+ " : ""}${
-      variants_keys[index]
-    }) ${option}\n`;
+    questionText += `${variants_keys[index]}) ${option}\n`;
   });
 
-  // Tugmalarni tayyorlash (faqat A, B, C, D)
   ["А", "Б", "В", "Г"].forEach((letter, index) => {
     keyboard.text(letter, `opt_${index}`);
     if (index % 2 === 1) keyboard.row();
   });
 
-  // Joriy savol uchun to'g'ri javob indeksini saqlash
   session.currentCorrectIndex = currentQuestion.options.indexOf(
     currentQuestion.correctAnswer
   );
@@ -330,7 +317,6 @@ async function handleTicketSelection(ctx, ticketNumber) {
   });
 
   await ctx.reply(fullTicketText);
-  // await sendQuestion(ctx, session);
 }
 
 async function handleAnswer(ctx) {
@@ -389,61 +375,8 @@ bot.on("callback_query", async (ctx) => {
       const ticketNum = parseInt(callbackData.split("_")[1]);
       await handleTicketSelection(ctx, ticketNum);
     }
-    // else if (callbackData.startsWith("opt_")) {
-    //   const session = await UserSession.findOne({userId: ctx.from.id});
-    //   if (
-    //     session &&
-    //     session.currentQuestionIndex < session.currentTest.length
-    //   ) {
-    //     const currentQuestion =
-    //       session.currentTest[session.currentQuestionIndex];
-    //     const selectedOptionIndex = parseInt(callbackData.split("_")[1]);
-
-    //     currentQuestion.userAnswer =
-    //       currentQuestion.options[selectedOptionIndex];
-    //     const isCorrect = selectedOptionIndex === session.currentCorrectIndex;
-
-    //     if (isCorrect) {
-    //       session.score += 1;
-    //       await ctx.reply("✅ Тўғри жавоб!");
-    //     } else {
-    //       await ctx.reply(
-    //         `❌ Нотўғри жавоб!\nТўғри жавоб: ${currentQuestion.correctAnswer}`
-    //       );
-    //     }
-
-    //     try {
-    //       await ctx.answerCallbackQuery();
-    //     } catch (error) {
-    //       console.log("Callback query жавобида хатолик:", error);
-    //     }
-
-    //     if (session.isRandomTest || isCorrect) {
-    //       session.currentQuestionIndex += 1;
-
-    //       if (session.currentQuestionIndex < session.currentTest.length) {
-    //         await session.save();
-    //         await sendQuestion(ctx, session);
-    //       } else {
-    //         const resultMessage = `Тест якунланди!\n\nНатижа: ${session.score}/${session.currentTest.length} та тўғри жавоб`;
-    //         await ctx.reply(resultMessage);
-    //         await session.deleteOne();
-    //       }
-    //     } else {
-    //       await session.save();
-    //     }
-    //   }
-    // }
   } catch (error) {
     console.error("Callback query ishlovida xatolik:", error);
-    try {
-      await ctx.answerCallbackQuery({
-        text: "Хатолик юз берди. Қайтадан уриниб кўринг",
-        show_alert: true,
-      });
-    } catch (err) {
-      console.log("Хатолик ҳақида хабар беришда муаммо:", err);
-    }
   }
 });
 
