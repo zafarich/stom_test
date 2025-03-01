@@ -281,6 +281,8 @@ bot.hears("📚 Билетлар", async (ctx) => {
   });
   if (tickets.length % 3 !== 0) keyboard.row();
 
+  keyboard.text("📝 Билетни ечиш", "solve_ticket").row();
+
   await ctx.reply("Билетни танланг:", {reply_markup: keyboard});
 });
 
@@ -369,7 +371,21 @@ bot.on("callback_query", async (ctx) => {
   try {
     const callbackData = ctx.callbackQuery.data;
 
-    if (callbackData.startsWith("bilet_")) {
+    if (callbackData === "solve_ticket") {
+      const keyboard = new InlineKeyboard();
+      const tickets = await Ticket.distinct("ticketNumber");
+
+      tickets.forEach((ticketNum, index) => {
+        keyboard.text(`${ticketNum}`, `solve_${ticketNum}`);
+        if (index % 3 === 2) keyboard.row();
+      });
+      if (tickets.length % 3 !== 0) keyboard.row();
+
+      await ctx.reply("Ечиш учун билетни танланг:", {reply_markup: keyboard});
+    } else if (callbackData.startsWith("solve_")) {
+      const ticketNum = parseInt(callbackData.split("_")[1]);
+      await startTicketTest(ctx, ticketNum);
+    } else if (callbackData.startsWith("bilet_")) {
       const ticketNum = parseInt(callbackData.split("_")[1]);
       await handleTicketSelection(ctx, ticketNum);
     }
@@ -430,6 +446,31 @@ bot.on("callback_query", async (ctx) => {
     }
   }
 });
+
+async function startTicketTest(ctx, ticketNumber) {
+  await UserSession.deleteMany({userId: ctx.from.id});
+
+  const ticket = await Ticket.findOne({ticketNumber});
+  if (!ticket) {
+    await ctx.reply("Билет топилмади!");
+    return;
+  }
+
+  const session = new UserSession({
+    userId: ctx.from.id,
+    ticketNumber: ticketNumber,
+    isRandomTest: false,
+    currentTest: ticket.questions.map((q) => ({
+      ...q.toObject(),
+      userAnswer: null,
+    })),
+    currentQuestionIndex: 0,
+    score: 0,
+  });
+  await session.save();
+
+  await sendQuestion(ctx, session);
+}
 
 // Botni ishga tushirish
 connectToMongo().then(() => {
