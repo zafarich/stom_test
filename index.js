@@ -124,7 +124,7 @@ async function startNewTest(userId, isRandom = true) {
   try {
     let questions;
     if (isRandom) {
-      questions = await getRandomQuestions(50);
+      questions = await getRandomQuestions(40);
     } else {
       const ticket = await Ticket.findOne({ticketNumber: 1});
       questions = ticket.questions;
@@ -196,51 +196,51 @@ bot.command("start", async (ctx) => {
   );
 });
 
-// bot.on("message:document", async (ctx) => {
-//   try {
-//     if (
-//       ctx.message.document.mime_type ===
-//       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-//     ) {
-//       const file = await ctx.getFile();
-//       const filePath = "./temp.xlsx";
+bot.on("message:document", async (ctx) => {
+  try {
+    if (
+      ctx.message.document.mime_type ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ) {
+      const file = await ctx.getFile();
+      const filePath = "./temp.xlsx";
 
-//       // Faylni yuklab olish
-//       const fileUrl = `https://api.telegram.org/file/bot${bot.token}/${file.file_path}`;
-//       const fileStream = fs.createWriteStream(filePath);
+      // Faylni yuklab olish
+      const fileUrl = `https://api.telegram.org/file/bot${bot.token}/${file.file_path}`;
+      const fileStream = fs.createWriteStream(filePath);
 
-//       await new Promise((resolve, reject) => {
-//         https
-//           .get(fileUrl, (response) => {
-//             response.pipe(fileStream);
-//             fileStream.on("finish", () => {
-//               fileStream.close();
-//               resolve();
-//             });
-//           })
-//           .on("error", (err) => {
-//             fs.unlink(filePath, () => reject(err));
-//           });
-//       });
+      await new Promise((resolve, reject) => {
+        https
+          .get(fileUrl, (response) => {
+            response.pipe(fileStream);
+            fileStream.on("finish", () => {
+              fileStream.close();
+              resolve();
+            });
+          })
+          .on("error", (err) => {
+            fs.unlink(filePath, () => reject(err));
+          });
+      });
 
-//       const questions = processExcel(filePath);
-//       const ticketCount = await saveQuestions(questions);
+      const questions = processExcel(filePath);
+      const ticketCount = await saveQuestions(questions);
 
-//       fs.unlinkSync(filePath);
+      fs.unlinkSync(filePath);
 
-//       await ctx.reply(
-//         `Excel файл муваффақиятли қайта ишланди!\nЖами ${ticketCount} та билет яратилди.\nҲар бир билетда 10 тадан савол мавжуд.`
-//       );
-//     } else {
-//       await ctx.reply("Илтимос, Excel (.xlsx) форматидаги файл юборинг!");
-//     }
-//   } catch (error) {
-//     console.error("Хатолик юз берди:", error);
-//     await ctx.reply(
-//       "Файлни қайта ишлашда хатолик юз берди. Илтимос, қайтадан уриниб кўринг."
-//     );
-//   }
-// });
+      await ctx.reply(
+        `Excel файл муваффақиятли қайта ишланди!\nЖами ${ticketCount} та билет яратилди.\nҲар бир билетда 10 тадан савол мавжуд.`
+      );
+    } else {
+      await ctx.reply("Илтимос, Excel (.xlsx) форматидаги файл юборинг!");
+    }
+  } catch (error) {
+    console.error("Хатолик юз берди:", error);
+    await ctx.reply(
+      "Файлни қайта ишлашда хатолик юз берди. Илтимос, қайтадан уриниб кўринг."
+    );
+  }
+});
 
 bot.hears("🎲 Имтихон олиш", async (ctx) => {
   await UserSession.deleteMany({userId: ctx.from.id});
