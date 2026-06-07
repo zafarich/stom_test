@@ -6,7 +6,8 @@ const https = require("https");
 require("dotenv").config();
 
 // MongoDB ulanish URL
-const mongoUrl = "mongodb://localhost:27017/quiz";
+const mongoUrl =
+  "mongodb://super_admin:suhi3800Azafar0000$@127.0.0.1:27017/quiz?authSource=admin";
 
 // Mongoose sxemalarini yaratish
 const questionSchema = new mongoose.Schema({
@@ -175,7 +176,7 @@ async function sendQuestion(ctx, session) {
   });
 
   session.currentCorrectIndex = currentQuestion.options.indexOf(
-    currentQuestion.correctAnswer
+    currentQuestion.correctAnswer,
   );
   await session.save();
 
@@ -192,7 +193,7 @@ bot.command("start", async (ctx) => {
 
   await ctx.reply(
     "Ассалому алайкум! Тест топшириш учун қуйидаги менюдан фойдаланинг:",
-    {reply_markup: keyboard}
+    {reply_markup: keyboard},
   );
 });
 
@@ -229,7 +230,7 @@ bot.on("message:document", async (ctx) => {
       fs.unlinkSync(filePath);
 
       await ctx.reply(
-        `Excel файл муваффақиятли қайта ишланди!\nЖами ${ticketCount} та билет яратилди.\nҲар бир билетда 10 тадан савол мавжуд.`
+        `Excel файл муваффақиятли қайта ишланди!\nЖами ${ticketCount} та билет яратилди.\nҲар бир билетда 10 тадан савол мавжуд.`,
       );
     } else {
       await ctx.reply("Илтимос, Excel (.xlsx) форматидаги файл юборинг!");
@@ -237,7 +238,7 @@ bot.on("message:document", async (ctx) => {
   } catch (error) {
     console.error("Хатолик юз берди:", error);
     await ctx.reply(
-      "Файлни қайта ишлашда хатолик юз берди. Илтимос, қайтадан уриниб кўринг."
+      "Файлни қайта ишлашда хатолик юз берди. Илтимос, қайтадан уриниб кўринг.",
     );
   }
 });
@@ -250,7 +251,7 @@ bot.hears("🎲 Имтихон олиш", async (ctx) => {
     await sendQuestion(ctx, session);
   } else {
     await ctx.reply(
-      "Тест бошлашда хатолик юз берди. Илтимос, қайтадан уриниб кўринг."
+      "Тест бошлашда хатолик юз берди. Илтимос, қайтадан уриниб кўринг.",
     );
   }
 });
